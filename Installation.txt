@@ -5,7 +5,8 @@ timedatectl set-timezone America/New_York
 
 2. System Update and Preparation
 yum check-update
-yum update -yyum -y install epel-release
+yum update -y
+yum -y install epel-release
 yum update -y
 yum install git -y
 yum install kernel* --exclude=kernel-debug* -y
