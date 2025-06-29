@@ -1,4 +1,4 @@
-VICIdial step-by-step Installation and Configuration on AlmaLinux :-
+VICIdial step-by-step Installation and Configuration on AlmaLinux 9 :-
 
 1. Set Timezone
 timedatectl set-timezone America/New_York
