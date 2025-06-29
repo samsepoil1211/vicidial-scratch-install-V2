@@ -1,0 +1,93 @@
+VICIdial step-by-step Installation and Configuration on AlmaLinux :-
+
+1. Set Timezone
+timedatectl set-timezone America/New_York
+
+2. System Update and Preparation
+yum check-update
+yum update -yyum -y install epel-release
+yum update -y
+yum install git -y
+yum install kernel* --exclude=kernel-debug* -y
+
+Reboot the system
+
+3. Disable SELinux
+sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+
+4. Clone VICIdial Install Script
+cd /usr/src
+git clone https://github.com/carpenox/vicidial-install-scripts.git
+cd vicidial-install-scripts/
+chmod +x main-installer.sh
+
+5. Run Installer
+./main-installer.sh
+
+6. Start Asterisk Manually (Post-Install)
+cd /var/log/astguiclient
+screen -L -S asterisk
+ulimit -n 65536
+/usr/sbin/asterisk -vvvvvvvvvvvvvvvvvvvvvgcT
+
+7. Apache Configuration Adjustments
+mv /etc/httpd/conf.d/viciportal-ssl.conf /etc/httpd/conf.d/viciportalssl.conf-noload
+systemctl restart httpd
+
+8. Disable Firewalls
+systemctl stop firewall
+systemctl stop firewalld
+
+9. Permissions Fix for VICIdial Web Directory
+chmod 755 /usr/src/astguiclient/trunk/www/vicidial/images/
+
+10. Apache/Nginx Restarts
+systemctl restart httpd
+systemctl restart apache
+systemctl restart apache2
+
+11. Reload Asterisk Modules and Dialplan
+asterisk -rvv
+dialplan reload
+sip reload
+module reload app_voicemail.so
+moh reload
+
+12. Monitor Logs
+tail -f /var/log/astguiclient/AMD_log20250403.txt | sed -u -e '/NOAUDIO/s/./
+\033[31m&\033[m/' -e '/HUMAN/s/./\033[32m&\033[m/'
+
+13. Edit Web Configuration
+cd /var/www/html/agc/
+mv /var/www/html/agc/options-example.php /var/www/html/options.php
+nano options.php
+
+14. SIP Peer & Call Status Checking
+asterisk -rx "sip show peers"
+asterisk -rx "core reload"
+
+15. Use sngrep for SIP Debugging
+sngrep
+
+16. Move the cyburphone into a backup mode 
+mv /var/www/html/CyburPhone /var/www/html/CyburPhone.bak
+
+17. Clone the original viciphone icon and webphone file
+https://github.com/vicimikec/ViciPhone.git
+
+18. Install the above viciphone 
+cd /var/www/html/agc
+rm -rf sip_js   # Remove any existing or broken webphone
+git clone https://github.com/vicimikec/ViciPhone.git
+mv ViciPhone sip_js
+chown -R apache:apache sip_js
+chmod -R 755 sip_js
+
+19.  Update VICIdial to Use This WebPhone
+Login to VICIdial Admin interface
+Go to: Admin → System Settings
+Find: Webphone URL
+Set it to: https://your.own.domain/agc/sip_js/src/viciphone.php
+
+20. Finally restart apache (httpd) service 
+systemctl restart httpd
